@@ -1,2 +1,2 @@
 # Bounty
-YEET
+React, Express, MongoDB, Graphql app
