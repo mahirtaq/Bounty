@@ -1,0 +1,26 @@
+{
+  "name": "bounty",
+  "version": "1.0.0",
+  "description": "Tutor booking app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mahirtaq/Bounty.git"
+  },
+  "author": "Mahir Taqbeem",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mahirtaq/Bounty/issues"
+  },
+  "homepage": "https://github.com/mahirtaq/Bounty#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
+}
