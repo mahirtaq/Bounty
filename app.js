@@ -8,30 +8,31 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/graphql', graphqlHttp({
-    schema: graphql.buildSchema(`
-        type RootQuery {
-            bounties: [String!]!
-        }
+  //FIX SHCHEMA
+  schema: graphql.buildSchema(`
+    type RootQuery {
+      bounties: [String!]!
+    }
 
-        type RootMutation {
-            createBounty(poster: String!, value: Int!, 
-                class: String!, description: String!): String
-        }
+    type RootMutation {
+      createBounty(poster: String!, value: Int!, 
+        class: String!, description: String!): String
+    }
 
-        schema {
-            query: RootQuery
-            mutation: RootMutation
-        }
-    `),
-    rootValue: {
-        bounties: () => {
-            return ['OHDd', 'dfadsf', 'adfd'];
-        },
-        createBounty: (args) => {
-            return args.poster;
-        }
+    schema {
+      query: RootQuery
+      mutation: RootMutation
+    }
+  `),
+  rootValue: {
+    bounties: () => {
+      return ['OHDd', 'dfadsf', 'adfd'];
     },
-    graphiql: true
+    createBounty: (args) => {
+      return args.poster;
+    }
+  },
+  graphiql: true
 }));
 
 const PORT = process.env.PORT || 8000;
