@@ -14,7 +14,7 @@ const bountySchema = new Schema({
     type: String,
     required: true
   },
-  created: {
+  creator: {
     type: Schema.Types.ObjectId,
     ref: 'User'
   }

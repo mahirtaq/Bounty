@@ -10,7 +10,6 @@ const User = require('./models/User');
 
 const app = express();
 
-
 // Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -61,8 +60,7 @@ app.use('/graphql', graphqlHttp({
   `),
   rootValue: {
     bounties: () => {
-      return Bounty
-        .find()
+      return Bounty.find()
         .then(bounties => {
           return bounties.map(bounty => {
             return { ...bounty._doc };
@@ -77,13 +75,24 @@ app.use('/graphql', graphqlHttp({
       const bounty = new Bounty({
         price: +args.bountyInput.price,
         class: args.bountyInput.class,
-        description: args.bountyInput.description
+        description: args.bountyInput.description,
+        creator: '5c8301ee10e7af2c782f648e'
       });
-      return bounty
-        .save()
+      let createdBounty;
+      return bounty.save()
         .then(result => {
-          console.log(result);
-          return { ...result._doc };
+          createdBounty = { ...result._doc };
+          return User.findById('5c8301ee10e7af2c782f648e')
+        })
+        .then(user => {
+          if (!user){
+            throw new Error('User not found.');
+          }
+          user.createdBounties.push(bounty);
+          return user.save();
+        })
+        .then(result => {
+          return createdBounty;
         })
         .catch(err => {
           console.log(err);
@@ -91,16 +100,23 @@ app.use('/graphql', graphqlHttp({
         });
     },
     createUser: (args) => {
-      return bcrypt
-        .hash(args.userInput.password, 12)
+      // Check if email already exists in db
+      return User.findOne({ email: args.userInput.email })
+        .then(user => {
+          if (user){
+            throw new Error('Email already exists.');
+          }
+          return bcrypt.hash(args.userInput.password, 12)
+        })
+        // Hash password
         .then(hashedPass => {
           const user = new User({
             name: args.userInput.name,
             email: args.userInput.email,
             password: hashedPass
           });
-          return user
-            .save()
+          // Save into db, return null password for security
+          return user.save()
             .then(result => {
               console.log(result);
               return { ...result._doc, password: null };
