@@ -13,6 +13,10 @@ const bountySchema = new Schema({
   description: {
     type: String,
     required: true
+  },
+  created: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   }
 });
 

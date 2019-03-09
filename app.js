@@ -3,8 +3,10 @@ const express = require('express');
 const graphqlHttp = require('express-graphql');
 const graphql = require('graphql');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-const Bounty = require('./models/bounty');
+const Bounty = require('./models/Bounty');
+const User = require('./models/User');
 
 const app = express();
 
@@ -24,6 +26,13 @@ app.use('/graphql', graphqlHttp({
       description: String!
     }
 
+    type User {
+      _id: ID!,
+      name: String!,
+      email: String!,
+      password: String
+    }
+
     type RootQuery {
       bounties: [Bounty!]!
     }
@@ -34,8 +43,15 @@ app.use('/graphql', graphqlHttp({
       description: String!
     }
 
+    input UserInput {
+      name: String!,
+      email: String!,
+      password: String!
+    }
+
     type RootMutation {
-      createBounty(bountyInput: BountyInput): Bounty
+      createBounty(bountyInput: BountyInput): Bounty,
+      createUser(userInput: UserInput): User
     }
 
     schema {
@@ -45,16 +61,17 @@ app.use('/graphql', graphqlHttp({
   `),
   rootValue: {
     bounties: () => {
-      return Bounty.find()
-      .then(bounties => {
-        return bounties.map(bounty => {
-          return { ...bounty._doc };
+      return Bounty
+        .find()
+        .then(bounties => {
+          return bounties.map(bounty => {
+            return { ...bounty._doc };
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          throw err;
         });
-      })
-      .catch(err => {
-        console.log(err);
-        throw err;
-      });
     },
     createBounty: (args) => {
       const bounty = new Bounty({
@@ -62,28 +79,57 @@ app.use('/graphql', graphqlHttp({
         class: args.bountyInput.class,
         description: args.bountyInput.description
       });
-      return bounty.save()
-      .then(result => {
-        console.log(result);
-        return { ...result._doc };
-      })
-      .catch(err => {
-        console.log(err);
-        throw err;
-      });
+      return bounty
+        .save()
+        .then(result => {
+          console.log(result);
+          return { ...result._doc };
+        })
+        .catch(err => {
+          console.log(err);
+          throw err;
+        });
+    },
+    createUser: (args) => {
+      return bcrypt
+        .hash(args.userInput.password, 12)
+        .then(hashedPass => {
+          const user = new User({
+            name: args.userInput.name,
+            email: args.userInput.email,
+            password: hashedPass
+          });
+          return user
+            .save()
+            .then(result => {
+              console.log(result);
+              return { ...result._doc, password: null };
+            })
+            .catch(err => {
+              console.log(err);
+              throw err;
+            });
+        })
+        .catch(err => {
+          console.log(err);
+          throw err;
+        });
     }
   },
   graphiql: true
 }));
 
-mongoose.connect(
-  `mongodb+srv://${process.env.MONGO_USER}:${
-    process.env.MONGO_PASSWORD
-  }@bount-cluster0-reeyh.mongodb.net/${process.env.MONGO_DB}?retryWrites=true`
-).then(() => {
-  const PORT = process.env.PORT || 8000;
-  app.listen(PORT, () => console.log(`Server started on port ${PORT}`));  
-})
-.catch(err => {
-  console.log(err);
-});
+mongoose
+  .connect(
+    `mongodb+srv://${process.env.MONGO_USER}:${
+      process.env.MONGO_PASSWORD
+    }@bount-cluster0-reeyh.mongodb.net/${process.env.MONGO_DB}?retryWrites=true`,
+    { useNewUrlParser: true }
+  )
+  .then(() => {
+    const PORT = process.env.PORT || 8000;
+    app.listen(PORT, () => console.log(`Server started on port ${PORT}`));  
+  })
+  .catch(err => {
+    console.log(err);
+  });
