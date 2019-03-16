@@ -13,8 +13,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-
-
 // Graphql schema
 app.use('/graphql', graphqlHttp({
   //FIX SHCHEMA
